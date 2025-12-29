@@ -1,26 +1,21 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat App</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <div class="user-switch">
-  <button onclick="switchUser('A')">User A</button>
-  <button onclick="switchUser('B')">User B</button>
-</div>
 
 <div id="home" class="room">
   <h2>🏠 Home</h2>
-  <p>Welcome to the house</p>
+  <p>Welcome</p>
 </div>
 
 <div id="chat" class="room hidden">
-  <h2>📝 Chat Room</h2>
+  <h2>💬 Chat</h2>
 
   <div id="messages" class="messages"></div>
 
@@ -35,15 +30,12 @@
   <div id="notifyList"></div>
 </div>
 
-<!-- Bottom Navigation -->
 <div class="bottom-bar">
   <button onclick="goRoom('home')">Home</button>
   <button onclick="goRoom('chat')">Chat</button>
   <button onclick="goRoom('notify')">Notify</button>
 </div>
 
-<script src="http://127.0.0.1:3000/socket.io/socket.io.js"></script>
 <script src="app.js"></script>
 </body>
-
 </html>

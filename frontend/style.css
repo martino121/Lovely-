@@ -26,8 +26,8 @@ body {
   background: none;
   border: none;
   color: white;
-  font-size: 14px;
 }
+
 .messages {
   max-height: 300px;
   overflow-y: auto;
@@ -39,10 +39,9 @@ body {
 
 .message {
   background: white;
-  padding: 6px 10px;
+  padding: 6px;
   border-radius: 6px;
   margin-bottom: 6px;
-  font-size: 14px;
 }
 
 .chat-input {
@@ -54,25 +53,15 @@ body {
   flex: 1;
   padding: 8px;
 }
+
 .notification {
   background: #e5e7eb;
   padding: 8px;
   border-radius: 6px;
   margin-bottom: 6px;
-  font-size: 13px;
 }
 
 .notification.new {
   background: #c7d2fe;
   font-weight: bold;
-}
-.user-switch {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.user-switch button {
-  flex: 1;
-  padding: 6px;
 }
