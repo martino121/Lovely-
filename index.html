@@ -9,6 +9,10 @@
 </head>
 
 <body>
+  <div class="user-switch">
+  <button onclick="switchUser('A')">User A</button>
+  <button onclick="switchUser('B')">User B</button>
+</div>
 
 <div id="home" class="room">
   <h2>🏠 Home</h2>
@@ -38,6 +42,7 @@
   <button onclick="goRoom('notify')">Notify</button>
 </div>
 
+<script src="http://127.0.0.1:3000/socket.io/socket.io.js"></script>
 <script src="app.js"></script>
 </body>
 
