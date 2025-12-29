@@ -1,0 +1,78 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.room {
+  padding: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  background: #020617;
+  padding: 10px;
+}
+
+.bottom-bar button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+}
+.messages {
+  max-height: 300px;
+  overflow-y: auto;
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.message {
+  background: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.chat-input {
+  display: flex;
+  gap: 5px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+}
+.notification {
+  background: #e5e7eb;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.notification.new {
+  background: #c7d2fe;
+  font-weight: bold;
+}
+.user-switch {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.user-switch button {
+  flex: 1;
+  padding: 6px;
+}
