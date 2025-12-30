@@ -9,33 +9,54 @@
 
 <body>
 
-<div id="home" class="room">
-  <h2>🏠 Home</h2>
-  <p>Welcome</p>
-</div>
+<!-- ================= LOGIN ================= -->
+<div id="login" class="room">
+  <h2>🔐 Login with Gmail</h2>
 
-<div id="chat" class="room hidden">
-  <h2>💬 Chat</h2>
+  <input
+    id="emailInput"
+    type="email"
+    placeholder="Enter your Gmail"
+  />
 
-  <div id="messages" class="messages"></div>
+  <button onclick="sendOTP()">Send OTP</button>
 
-  <div class="chat-input">
-    <input id="msgInput" placeholder="Type message..." />
-    <button onclick="sendMessage()">Send</button>
+  <div id="otpBox" class="hidden">
+    <input id="otpInput" placeholder="Enter OTP" />
+    <button onclick="verifyOTP()">Verify OTP</button>
   </div>
 </div>
 
-<div id="notify" class="room hidden">
-  <h2>🔔 Notifications</h2>
-  <p>No notifications yet</p>
+<!-- ================= APP ================= -->
+<div id="app" class="hidden">
+
+  <!-- HOME -->
+  <div id="home" class="room">
+    <h2>🏠 Home</h2>
+    <p>Logged in as <b id="userEmail"></b></p>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat" class="room hidden">
+    <h2>💬 Chat</h2>
+
+    <div id="messages" class="messages"></div>
+
+    <div class="chat-input">
+      <input id="msgInput" placeholder="Type message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="bottom-bar">
+    <button onclick="goRoom('home')">Home</button>
+    <button onclick="goRoom('chat')">Chat</button>
+  </div>
+
 </div>
 
-<div class="bottom-bar">
-  <button onclick="goRoom('home')">Home</button>
-  <button onclick="goRoom('chat')">Chat</button>
-  <button onclick="goRoom('notify')">Notify</button>
-</div>
-
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

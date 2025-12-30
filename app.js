@@ -1,71 +1,64 @@
-/* ===============================
-   CONFIG
-================================ */
 const API = "https://lovely-wg0f.onrender.com";
 const socket = io(API);
 
 let USER = JSON.parse(localStorage.getItem("USER"));
 
-/* ===============================
-   LOGIN
-================================ */
-async function login() {
-  const name = prompt("Enter your name");
-  if (!name) return;
+/* ================= LOGIN OTP ================= */
 
-  const res = await fetch(API + "/login", {
+async function sendOTP() {
+  const email = document.getElementById("emailInput").value.trim();
+  if (!email) return alert("Enter your Gmail");
+
+  await fetch(API + "/send-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ email })
   });
 
-  USER = await res.json();
+  document.getElementById("otpBox").classList.remove("hidden");
+  alert("OTP sent to your Gmail");
+}
+
+async function verifyOTP() {
+  const email = document.getElementById("emailInput").value.trim();
+  const otp = document.getElementById("otpInput").value.trim();
+  if (!otp) return alert("Enter OTP");
+
+  const res = await fetch(API + "/verify-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  USER = data;
   localStorage.setItem("USER", JSON.stringify(USER));
 
-  alert("Logged in as " + USER.name);
-  renderRoom();
+  document.getElementById("userEmail").innerText = USER.email;
+  goRoom("home");
 }
 
-if (!USER) {
-  login();
-}
-
-/* ===============================
-   ROOM NAVIGATION
-================================ */
-function getRoom() {
-  return localStorage.getItem("ROOM") || "home";
-}
-
-function setRoom(room) {
-  localStorage.setItem("ROOM", room);
-}
+/* ================= ROOMS ================= */
 
 function goRoom(room) {
-  setRoom(room);
-  renderRoom();
-}
-
-function renderRoom() {
   document.querySelectorAll(".room").forEach(r =>
     r.classList.add("hidden")
   );
-
-  const active = document.getElementById(getRoom());
-  if (active) active.classList.remove("hidden");
+  document.getElementById(room).classList.remove("hidden");
 }
 
-/* ===============================
-   CHAT
-================================ */
+/* ================= CHAT ================= */
+
 function sendMessage() {
   const input = document.getElementById("msgInput");
   const text = input.value.trim();
-  if (!text || !USER) return;
+  if (!text) return;
 
   socket.emit("send-message", {
     userId: USER.id,
-    userName: USER.name,
+    email: USER.email,
     text
   });
 
@@ -74,17 +67,18 @@ function sendMessage() {
 
 socket.on("new-message", m => {
   const box = document.getElementById("messages");
-  if (!box) return;
-
   const div = document.createElement("div");
   div.className = "message";
-  div.innerText = `${m.userName}: ${m.text}`;
-
+  div.innerText = `${m.email}: ${m.text}`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 });
 
-/* ===============================
-   START
-================================ */
-renderRoom();
+/* ================= START ================= */
+
+if (USER) {
+  document.getElementById("userEmail").innerText = USER.email;
+  goRoom("home");
+} else {
+  goRoom("login");
+}
