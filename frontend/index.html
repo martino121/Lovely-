@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auth Demo</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: system-ui, sans-serif;
+    }
+    .box {
+      max-width: 360px;
+      margin: 80px auto;
+      padding: 20px;
+      background: #020617;
+      border-radius: 8px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: none;
+    }
+    input {
+      background: #020617;
+      border: 1px solid #334155;
+      color: #e5e7eb;
+    }
+    button {
+      background: #22c55e;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .msg {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h3>Register</h3>
+  <input id="rEmail" placeholder="Email">
+  <input id="rPass" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
+
+  <hr>
+
+  <h3>Login</h3>
+  <input id="lEmail" placeholder="Email">
+  <input id="lPass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+
+  <p class="msg" id="msg"></p>
+</div>
+
+<script>
+const API = "http://localhost:3000";
+
+async function register() {
+  const res = await fetch(API + "/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: rEmail.value,
+      password: rPass.value
+    })
+  });
+
+  const data = await res.json();
+  msg.innerText = data.msg || "Error";
+}
+
+async function login() {
+  const res = await fetch(API + "/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // refresh token cookie
+    body: JSON.stringify({
+      email: lEmail.value,
+      password: lPass.value
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    msg.innerText = data.msg || "Login failed";
+    return;
+  }
+
+  // save access token
+  localStorage.setItem("accessToken", data.accessToken);
+  msg.innerText = "Login success";
+}
+</script>
+
+</body>
+</html>
