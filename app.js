@@ -2,11 +2,14 @@ const API = "https://lovely-wg0f.onrender.com";
 const socket = io(API);
 
 let USER = JSON.parse(localStorage.getItem("USER"));
+let TEMP_EMAIL = null;
 
-// ================= OTP =================
+/* =====================
+   OTP LOGIN
+===================== */
 async function sendOTP() {
   const email = document.getElementById("emailInput").value.trim();
-  if (!email) return alert("Enter email");
+  if (!email) return alert("Enter Gmail");
 
   const res = await fetch(API + "/send-otp", {
     method: "POST",
@@ -15,53 +18,77 @@ async function sendOTP() {
   });
 
   const data = await res.json();
-  if (data.success) {
+
+  if (res.ok) {
+    TEMP_EMAIL = email;
     document.getElementById("otpBox").classList.remove("hidden");
-    alert("OTP sent to Gmail");
+    document.getElementById("loginMsg").innerText = "OTP sent to Gmail";
   } else {
-    alert("OTP failed");
+    alert(data.error || "OTP failed");
   }
 }
 
 async function verifyOTP() {
-  const email = document.getElementById("emailInput").value.trim();
   const otp = document.getElementById("otpInput").value.trim();
+  if (!otp) return alert("Enter OTP");
 
   const res = await fetch(API + "/verify-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, otp })
+    body: JSON.stringify({ email: TEMP_EMAIL, otp })
   });
 
-  const data = await res.json();
-  if (!data.success) return alert(data.error);
+  const user = await res.json();
 
-  USER = data.user;
+  if (!res.ok) return alert(user.error || "OTP wrong");
+
+  USER = user;
   localStorage.setItem("USER", JSON.stringify(USER));
 
   document.getElementById("login").classList.add("hidden");
-  document.getElementById("home").classList.remove("hidden");
+  document.getElementById("nav").classList.remove("hidden");
   document.getElementById("userEmail").innerText = USER.email;
+
+  goRoom("home");
 }
 
-// ================= CHAT =================
+/* =====================
+   ROOM NAV
+===================== */
+function goRoom(room) {
+  document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
+  document.getElementById(room).classList.remove("hidden");
+}
+
+/* =====================
+   CHAT
+===================== */
 function sendMessage() {
-  const input = document.getElementById("msgInput");
-  const text = input.value.trim();
+  const text = document.getElementById("msgInput").value.trim();
   if (!text) return;
 
   socket.emit("send-message", {
-    email: USER.email,
+    userId: USER.id,
+    userName: USER.email,
     text
   });
 
-  input.value = "";
+  document.getElementById("msgInput").value = "";
 }
 
 socket.on("new-message", m => {
-  const box = document.getElementById("messages");
   const div = document.createElement("div");
   div.className = "message";
-  div.innerText = `${m.email}: ${m.text}`;
-  box.appendChild(div);
+  div.innerText = `${m.userName}: ${m.text}`;
+  document.getElementById("messages").appendChild(div);
 });
+
+/* =====================
+   AUTO LOGIN
+===================== */
+if (USER) {
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("nav").classList.remove("hidden");
+  document.getElementById("userEmail").innerText = USER.email;
+  goRoom("home");
+}

@@ -11,37 +11,18 @@ body {
   display: none;
 }
 
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-around;
-  background: #020617;
-  padding: 10px;
-}
-
-.bottom-bar button {
-  background: none;
-  border: none;
-  color: white;
-}
-
 .messages {
-  max-height: 300px;
-  overflow-y: auto;
+  min-height: 200px;
   background: #f1f5f9;
   padding: 10px;
-  border-radius: 8px;
   margin-bottom: 10px;
 }
 
 .message {
   background: white;
   padding: 6px;
-  border-radius: 6px;
   margin-bottom: 6px;
+  border-radius: 5px;
 }
 
 .chat-input {
@@ -49,19 +30,19 @@ body {
   gap: 5px;
 }
 
-.chat-input input {
-  flex: 1;
-  padding: 8px;
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #020617;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
 }
 
-.notification {
-  background: #e5e7eb;
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-}
-
-.notification.new {
-  background: #c7d2fe;
-  font-weight: bold;
+.bottom-bar button {
+  background: none;
+  border: none;
+  color: white;
 }

@@ -2,91 +2,105 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
 
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// ================= OTP STORE =================
-const otpStore = {}; // { email: { otp, expires } }
+/* ======================
+   IN-MEMORY STORE
+====================== */
+const USERS = {}; // email -> user
+const OTP_STORE = {}; // email -> otp
 
-// ================= MAIL SETUP =================
+/* ======================
+   GMAIL CONFIG
+====================== */
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.merizindegi40@gmail.com
-    pass: process.env.axnk ytuc ewzz jmic
+    user: "merizindegi40@gmail.com",       // 🔴 তোমার Gmail
+    pass: "axnk ytuc ewzz jmic"             // 🔴 App Password (spaces সহ)
   }
 });
 
-// ================= API =================
+/* ======================
+   API
+====================== */
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
 
-// SEND OTP
+/* ---------- SEND OTP ---------- */
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email required" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  otpStore[email] = {
-    otp,
-    expires: Date.now() + 5 * 60 * 1000 // 5 min
-  };
+  OTP_STORE[email] = otp;
 
   try {
     await transporter.sendMail({
-      from: `"Chat App" <${process.env.GMAIL_USER}>`,
+      from: "Chat App <merizindegi40@gmail.com>",
       to: email,
       subject: "Your OTP Code",
-      text: `Your OTP is: ${otp}`
+      text: `Your OTP is ${otp}`
     });
 
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "OTP send failed" });
+    res.status(500).json({ error: "Mail failed" });
   }
 });
 
-// VERIFY OTP
+/* ---------- VERIFY OTP ---------- */
 app.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
-  const data = otpStore[email];
 
-  if (!data) return res.status(400).json({ error: "OTP not found" });
-  if (Date.now() > data.expires)
-    return res.status(400).json({ error: "OTP expired" });
-  if (otp !== data.otp)
-    return res.status(400).json({ error: "Wrong OTP" });
+  if (OTP_STORE[email] !== otp) {
+    return res.status(400).json({ error: "Invalid OTP" });
+  }
 
-  delete otpStore[email];
+  delete OTP_STORE[email];
 
-  res.json({
-    success: true,
-    user: {
+  if (!USERS[email]) {
+    USERS[email] = {
       id: crypto.randomUUID(),
       email
-    }
-  });
+    };
+  }
+
+  res.json(USERS[email]);
 });
 
-// ================= SOCKET =================
+/* ======================
+   SOCKET CHAT
+====================== */
 io.on("connection", socket => {
   socket.on("send-message", msg => {
-    io.emit("new-message", msg);
+    const message = {
+      id: crypto.randomUUID(),
+      userName: msg.userName,
+      text: msg.text,
+      time: Date.now()
+    };
+    io.emit("new-message", message);
   });
 });
 
+/* ======================
+   START
+====================== */
 server.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
