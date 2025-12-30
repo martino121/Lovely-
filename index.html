@@ -52,7 +52,7 @@
   <h3>Login</h3>
   <input id="lEmail" placeholder="Email">
   <input id="lPass" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
+  <button id="loginBtn" onclick="login()">Login</button>
 
   <p class="msg" id="msg"></p>
 </div>
@@ -61,39 +61,66 @@
 const API = "https://lovely-wvpf.onrender.com";
 
 async function register() {
-  const res = await fetch(API + "/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: rEmail.value,
-      password: rPass.value
-    })
-  });
+  msg.innerText = "Registering...";
+  try {
+    const res = await fetch(API + "/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: rEmail.value,
+        password: rPass.value
+      })
+    });
 
-  const data = await res.json();
-  msg.innerText = data.msg || "Error";
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.innerText = data.msg || "Register failed";
+      return;
+    }
+
+    msg.innerText = "Registered successfully";
+  } catch (e) {
+    msg.innerText = "Server waking up... try again in 30 sec";
+  }
 }
 
 async function login() {
-  const res = await fetch(API + "/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // refresh token cookie
-    body: JSON.stringify({
-      email: lEmail.value,
-      password: lPass.value
-    })
-  });
+  msg.innerText = "Logging in...";
+  loginBtn.disabled = true;
 
-  const data = await res.json();
-  if (!res.ok) {
-    msg.innerText = data.msg || "Login failed";
-    return;
+  try {
+    const res = await fetch(API + "/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        email: lEmail.value,
+        password: lPass.value
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.innerText = data.msg || "Invalid login";
+      loginBtn.disabled = false;
+      return;
+    }
+
+    localStorage.setItem("accessToken", data.accessToken);
+    msg.innerText = "Login successful";
+
+    // next step (temporary)
+    setTimeout(() => {
+      alert("Logged in ✔");
+    }, 500);
+
+  } catch (e) {
+    msg.innerText = "Server waking up... try again in 30 sec";
+  } finally {
+    loginBtn.disabled = false;
   }
-
-  // save access token
-  localStorage.setItem("accessToken", data.accessToken);
-  msg.innerText = "Login success";
 }
 </script>
 
