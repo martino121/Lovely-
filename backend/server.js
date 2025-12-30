@@ -17,10 +17,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 /* ======================
-   IN-MEMORY STORE
+   MEMORY STORE
 ====================== */
-const USERS = {}; // email -> user
-const OTP_STORE = {}; // email -> otp
+const USERS = {};
+const OTP_STORE = {};
 
 /* ======================
    GMAIL CONFIG
@@ -28,8 +28,8 @@ const OTP_STORE = {}; // email -> otp
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "merizindegi40@gmail.com",       // 🔴 তোমার Gmail
-    pass: "axnk ytuc ewzz jmic"             // 🔴 App Password (spaces সহ)
+    user: "merizindegi40@gmail.com",
+    pass: "axnk ytuc ewzz jmic" // app password (spaces সহ)
   }
 });
 
@@ -40,13 +40,14 @@ app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
 
-/* ---------- SEND OTP ---------- */
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email required" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   OTP_STORE[email] = otp;
+
+  console.log("OTP:", email, otp);
 
   try {
     await transporter.sendMail({
@@ -55,7 +56,6 @@ app.post("/send-otp", async (req, res) => {
       subject: "Your OTP Code",
       text: `Your OTP is ${otp}`
     });
-
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -63,7 +63,6 @@ app.post("/send-otp", async (req, res) => {
   }
 });
 
-/* ---------- VERIFY OTP ---------- */
 app.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
 
@@ -98,9 +97,6 @@ io.on("connection", socket => {
   });
 });
 
-/* ======================
-   START
-====================== */
 server.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
