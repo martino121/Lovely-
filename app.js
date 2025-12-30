@@ -3,26 +3,29 @@ const socket = io(API);
 
 let USER = JSON.parse(localStorage.getItem("USER"));
 
-/* ================= LOGIN OTP ================= */
-
+// ================= OTP =================
 async function sendOTP() {
   const email = document.getElementById("emailInput").value.trim();
-  if (!email) return alert("Enter your Gmail");
+  if (!email) return alert("Enter email");
 
-  await fetch(API + "/send-otp", {
+  const res = await fetch(API + "/send-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email })
   });
 
-  document.getElementById("otpBox").classList.remove("hidden");
-  alert("OTP sent to your Gmail");
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById("otpBox").classList.remove("hidden");
+    alert("OTP sent to Gmail");
+  } else {
+    alert("OTP failed");
+  }
 }
 
 async function verifyOTP() {
   const email = document.getElementById("emailInput").value.trim();
   const otp = document.getElementById("otpInput").value.trim();
-  if (!otp) return alert("Enter OTP");
 
   const res = await fetch(API + "/verify-otp", {
     method: "POST",
@@ -31,33 +34,23 @@ async function verifyOTP() {
   });
 
   const data = await res.json();
-  if (data.error) return alert(data.error);
+  if (!data.success) return alert(data.error);
 
-  USER = data;
+  USER = data.user;
   localStorage.setItem("USER", JSON.stringify(USER));
 
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
   document.getElementById("userEmail").innerText = USER.email;
-  goRoom("home");
 }
 
-/* ================= ROOMS ================= */
-
-function goRoom(room) {
-  document.querySelectorAll(".room").forEach(r =>
-    r.classList.add("hidden")
-  );
-  document.getElementById(room).classList.remove("hidden");
-}
-
-/* ================= CHAT ================= */
-
+// ================= CHAT =================
 function sendMessage() {
   const input = document.getElementById("msgInput");
   const text = input.value.trim();
   if (!text) return;
 
   socket.emit("send-message", {
-    userId: USER.id,
     email: USER.email,
     text
   });
@@ -71,14 +64,4 @@ socket.on("new-message", m => {
   div.className = "message";
   div.innerText = `${m.email}: ${m.text}`;
   box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
 });
-
-/* ================= START ================= */
-
-if (USER) {
-  document.getElementById("userEmail").innerText = USER.email;
-  goRoom("home");
-} else {
-  goRoom("login");
-}
