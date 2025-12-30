@@ -1,12 +1,38 @@
-console.log("app.js loaded");
+/* ===============================
+   CONFIG
+================================ */
+const API = "https://lovely-wg0f.onrender.com";
+const socket = io(API);
 
-// 🔗 YOUR RENDER BACKEND URL
-const BACKEND_URL = "https://lovely-wg0f.onrender.com";
+let USER = JSON.parse(localStorage.getItem("USER"));
 
-// socket connect
-const socket = io(BACKEND_URL);
+/* ===============================
+   LOGIN
+================================ */
+async function login() {
+  const name = prompt("Enter your name");
+  if (!name) return;
 
-// ===== ROOM =====
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name })
+  });
+
+  USER = await res.json();
+  localStorage.setItem("USER", JSON.stringify(USER));
+
+  alert("Logged in as " + USER.name);
+  renderRoom();
+}
+
+if (!USER) {
+  login();
+}
+
+/* ===============================
+   ROOM NAVIGATION
+================================ */
 function getRoom() {
   return localStorage.getItem("ROOM") || "home";
 }
@@ -15,53 +41,50 @@ function setRoom(room) {
   localStorage.setItem("ROOM", room);
 }
 
-async function goRoom(room) {
+function goRoom(room) {
   setRoom(room);
-
-  if (room === "notify") {
-    await fetch(`${BACKEND_URL}/notifications/seen`, { method: "POST" });
-  }
-
   renderRoom();
 }
 
 function renderRoom() {
-  const room = getRoom();
-  document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
-  const active = document.getElementById(room);
+  document.querySelectorAll(".room").forEach(r =>
+    r.classList.add("hidden")
+  );
+
+  const active = document.getElementById(getRoom());
   if (active) active.classList.remove("hidden");
 }
 
-// ===== CHAT =====
+/* ===============================
+   CHAT
+================================ */
 function sendMessage() {
   const input = document.getElementById("msgInput");
   const text = input.value.trim();
-  if (!text) return;
-  socket.emit("send-message", text);
+  if (!text || !USER) return;
+
+  socket.emit("send-message", {
+    userId: USER.id,
+    userName: USER.name,
+    text
+  });
+
   input.value = "";
 }
 
-socket.on("new-message", msg => {
-  renderMessage(msg);
-});
-
-function renderMessage(m) {
+socket.on("new-message", m => {
   const box = document.getElementById("messages");
   if (!box) return;
 
   const div = document.createElement("div");
   div.className = "message";
-  div.innerText = "User: " + m.text;
+  div.innerText = `${m.userName}: ${m.text}`;
+
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
-}
+});
 
-// ===== LOAD OLD MESSAGES =====
-async function loadMessages() {
-  const res = await fetch(`${BACKEND_URL}/messages`);
-  const msgs = await res.json();
-  msgs.forEach(renderMessage);
-}
-
-loadMessages();
+/* ===============================
+   START
+================================ */
 renderRoom();
