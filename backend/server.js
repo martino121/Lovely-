@@ -1,4 +1,6 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 const fs = require("fs");
 const crypto = require("crypto");
@@ -7,10 +9,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
 const PORT = process.env.PORT || 3000;
 const DB_FILE = "./db.json";
 
-// ===== helper =====
+// ===== DB =====
 function readDB() {
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(
@@ -21,8 +28,8 @@ function readDB() {
   return JSON.parse(fs.readFileSync(DB_FILE));
 }
 
-function writeDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+function writeDB(db) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 }
 
 // ===== ROUTES =====
@@ -30,63 +37,12 @@ app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// Login / Register
-app.post("/user", (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({ error: "Name required" });
-
-  const db = readDB();
-  let user = db.users.find(u => u.name === name);
-
-  if (!user) {
-    user = {
-      id: crypto.randomUUID(),
-      name,
-      createdAt: Date.now()
-    };
-    db.users.push(user);
-    writeDB(db);
-  }
-
-  res.json(user);
-});
-
-// Send message
-app.post("/message", (req, res) => {
-  const { userId, text } = req.body;
-  if (!userId || !text)
-    return res.status(400).json({ error: "Invalid message" });
-
-  const db = readDB();
-
-  db.messages.push({
-    id: crypto.randomUUID(),
-    userId,
-    text,
-    time: Date.now()
-  });
-
-  db.notifications.push({
-    id: crypto.randomUUID(),
-    text: `New message from ${userId}`,
-    time: Date.now(),
-    seen: false
-  });
-
-  writeDB(db);
-  res.json({ success: true });
-});
-
-// Get messages
 app.get("/messages", (req, res) => {
-  const db = readDB();
-  res.json(db.messages);
+  res.json(readDB().messages);
 });
 
-// Notifications
 app.get("/notifications", (req, res) => {
-  const db = readDB();
-  res.json(db.notifications);
+  res.json(readDB().notifications);
 });
 
 app.post("/notifications/seen", (req, res) => {
@@ -96,6 +52,38 @@ app.post("/notifications/seen", (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(PORT, () => {
+// ===== SOCKET =====
+io.on("connection", socket => {
+  console.log("🟢 User connected");
+
+  socket.on("send-message", text => {
+    const db = readDB();
+
+    const msg = {
+      id: crypto.randomUUID(),
+      userId: "USER",
+      text,
+      time: Date.now()
+    };
+
+    db.messages.push(msg);
+    db.notifications.push({
+      id: crypto.randomUUID(),
+      text: "New message",
+      seen: false,
+      time: Date.now()
+    });
+
+    writeDB(db);
+
+    io.emit("new-message", msg); // 🔥 real-time
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 User disconnected");
+  });
+});
+
+server.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
