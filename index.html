@@ -60,28 +60,43 @@
 <script>
 const API = "https://lovely-wvpf.onrender.com";
 
+// explicit DOM references (IMPORTANT)
+const msg = document.getElementById("msg");
+const rEmail = document.getElementById("rEmail");
+const rPass = document.getElementById("rPass");
+const lEmail = document.getElementById("lEmail");
+const lPass = document.getElementById("lPass");
+const loginBtn = document.getElementById("loginBtn");
+
 async function register() {
   msg.innerText = "Registering...";
+
   try {
     const res = await fetch(API + "/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: rEmail.value,
+        email: rEmail.value.trim(),
         password: rPass.value
       })
     });
 
-    const data = await res.json();
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data.msg = "No response from server";
+    }
 
     if (!res.ok) {
       msg.innerText = data.msg || "Register failed";
       return;
     }
 
-    msg.innerText = "Registered successfully";
+    msg.innerText = data.msg || "Registered successfully";
+
   } catch (e) {
-    msg.innerText = "Server waking up... try again in 30 sec";
+    msg.innerText = "Server sleeping… try again in 30 sec";
   }
 }
 
@@ -95,29 +110,28 @@ async function login() {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        email: lEmail.value,
+        email: lEmail.value.trim(),
         password: lPass.value
       })
     });
 
-    const data = await res.json();
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data.msg = "No response from server";
+    }
 
     if (!res.ok) {
       msg.innerText = data.msg || "Invalid login";
-      loginBtn.disabled = false;
       return;
     }
 
     localStorage.setItem("accessToken", data.accessToken);
-    msg.innerText = "Login successful";
-
-    // next step (temporary)
-    setTimeout(() => {
-      alert("Logged in ✔");
-    }, 500);
+    msg.innerText = "Login successful ✔";
 
   } catch (e) {
-    msg.innerText = "Server waking up... try again in 30 sec";
+    msg.innerText = "Server sleeping… try again in 30 sec";
   } finally {
     loginBtn.disabled = false;
   }
